@@ -1,5 +1,5 @@
 index_top_img_height: 500px
-default_top_img: transparent
+index_img: transparent
 
 background: url(/images/default_cover.png)
 
@@ -38,7 +38,8 @@ cover:
   aside_enable: true
   archives_enable: true
   position: both
-  default_cover: 123
+  default_cover:
+    - /images/star_flower_clip.jpg
 
 toc:
   style_simple: true
