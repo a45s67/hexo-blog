@@ -18,9 +18,20 @@ menu:
 aside:
   card_tags:
     color: true
+  card_announcement:
+    enable: false
+    content: Welcome!
+  card_author:
+    enable: true
+    description:
+    button:
+      enable: true
+      icon: fab fa-github
+      text: Follow Me
+      link: https://github.com/a45s67
 
 avatar:
-  img: /images/default_cover.png
+  img: https://i.pinimg.com/originals/52/d8/ec/52d8ec67ae9225cfcecc91c5ad29c793.jpg #https://pbs.twimg.com/media/EXAGDxNUEAAb0gt?format=png&name=900x900 #/images/default_cover.png
 
 cover:
   index_enable: true
