@@ -4,8 +4,8 @@
 
 # Site
 title: FlyFish's Blog
-subtitle: ''
-description: ''
+subtitle:
+description: 這個人很懶，什麼都沒寫
 keywords:
 author: Fish Yu
 language: en
@@ -13,7 +13,7 @@ timezone: ''
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://example.com
+url: https://a45s67.github.io
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -103,7 +103,7 @@ theme: butterfly
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: https://github.com/a45s67/hexo-publish-test.git
+  repo: git@github.com:a45s67/a45s67.github.io.git
   branch: master
 
 
