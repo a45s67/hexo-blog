@@ -69,6 +69,23 @@ error_404:
   subtitle: "Page not found"
   background: /images/crying_chopper.jpg
 
+comments:
+  use: Giscus,Disqus
+
+disqus:
+  shortname: a45s67-blog
+  lazyload: true
+  count: true
+
+giscus:
+  repo: a45s67/a45s67.github.io
+  repo_id: MDEwOlJlcG9zaXRvcnkyMjczMzA1OTY=
+  category_id: DIC_kwDODYzKJM4CR_uz
+  theme:
+    light: light
+    dark: dark_dimmed
+  option:
+    data-loading: lazy
 
 # Category & Tag
 default_category: uncategorized
