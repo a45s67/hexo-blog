@@ -19,28 +19,28 @@ cover:
 顧名思義，這個活動是將從前 hitcon ctf 出過的題目進行復刻。
 
 ### papapa
-{% asset_img papapa-1.png 450 挖勒 %}
+{% img https://files.sakana.tw/HITCON-2023-ReCTF/papapa-1.png 450 挖勒 %}
 一進來頁面就長這樣，啥 input 都沒有，看了 cookie 感覺也沒能控制的點，我無言了...。
 通靈了一下子，決定爬文搜 papapa ctf，發現是 hitcon 2016 時 orange 出的題目([連結](https://peterli.website/hitcon-ctf-2016-papapa-%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/))，並翻了 orange github 的出題 src，原來解題的關鍵在憑證...。
-{% asset_img papapa-2.png 450 %}
+{% img https://files.sakana.tw/HITCON-2023-ReCTF/papapa-2.png 450 %}
 
 直接 burpsuite 改 host，拿到 flag `FLAG{Nw_u_F0un6_myh05t}`
-{% asset_img papapa-3.png 450 %}
+{% img https://files.sakana.tw/HITCON-2023-ReCTF/papapa-3.png 450 %}
 
 但其實這 flag 傳上去是錯的，窩操，傻住了一下，搞不好是藏在其他頁，重新走整個流程再試一次。
-{% asset_img papapa-4.png 450 %}
+{% img https://files.sakana.tw/HITCON-2023-ReCTF/papapa-4.png 450 %}
 這次真的拿到了 `hitcon{n0w_4y_h4v3_th3_f14g}`，原來 flag 不是在 `/index.html` 是在 `/`，還好不是藏很深(呼氣)。
 
 ### yeeclass
-{% asset_img yeeclass-1.png 450 %}
+{% img https://files.sakana.tw/HITCON-2023-ReCTF/yeeclass-1.png 450 %}
 這個題目很佛心的給了你整個 source 包括 docker compose，所以只要 trace code 就好，
 我原本是這樣想的...，但我前一小時真的看不出洞。
 本以為是打 sql injection，但整份 code 都使用 POD execute，應該不是這問題。
 後來才發現，submission.php 中有一個判斷失誤，`PERM_TA` 為 1，`_SESSION`不存在時，其在 boolean 的判斷會當成 0 的樣子，可以繞過拿到 FLAG 的清單 (`homework=1`)
-{% asset_img yeeclass-2.png 450 %}
+{% img https://files.sakana.tw/HITCON-2023-ReCTF/yeeclass-2.png 450 %}
 
 於是我把 cookie 清掉再讀一次網頁，繞過了，可惜這邊還是看不到 flag 內容
-{% asset_img yeeclass-3.png 450 %}
+{% img https://files.sakana.tw/HITCON-2023-ReCTF/yeeclass-3.png 450 %}
 
 同時 submission.php 中看到了這一段，我突發奇想: "是不是有辦法 userclass 沒設定但 userid 設定成 `flagholder`"，這樣我就有拿的到 hash 去存取 flag 頁面了？！
 ``` php
