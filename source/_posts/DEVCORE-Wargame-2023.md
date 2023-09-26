@@ -2,8 +2,8 @@
 title: DEVCORE-Wargame-2023
 date: 2023-09-03 22:11:02
 tags:
-categories:
 - [CTF]
+categories:
 ---
 
 # first-flag(有點忘記，應該是叫這名子沒錯)

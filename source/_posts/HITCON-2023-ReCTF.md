@@ -2,8 +2,8 @@
 title: HITCON-2023-ReCTF
 date: 2023-08-27 20:50:27
 tags:
-categories:
 - [CTF]
+categories:
 cover:
 - cover.jpg
 ---
