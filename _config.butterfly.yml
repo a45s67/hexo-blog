@@ -37,13 +37,13 @@ aside:
       link: https://github.com/a45s67
 
 avatar:
-  img: https://files.sakana.tw/Theme/avatar-bocchi.jpg
+  img: https://files.sakana.tw/Theme/avatar-arona.png
 
 cover:
   index_enable: true
   aside_enable: true
   archives_enable: true
-  position: both
+  position: left
   default_cover:
     - /images/star_flower_clip.jpg
 
