@@ -8,8 +8,8 @@ categories:
 
 # first-flag(有點忘記，應該是叫這名子沒錯)
 隨便輸入一串 user，登入後會要你輸入 flag，超過 5 分會給你這一題的 flag
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/first-flag-1.png 450 %}
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/first-flag-2.png 450 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/first-flag-1.png 450 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/first-flag-2.png 450 %}
 (搞笑的是我一開始以為 flag 是 `FLAG{this_is_the_first_flag}`，拿去輸入想說怎麼是錯的)
 
 看 session，感覺有點東西，於是 base64 decode，嗯？感覺 exp 可以用。
@@ -28,12 +28,12 @@ session=eyJ1c2VyIjoiZmlzaCIsImV4cCI6MTY5MjQyNDI1NH0-a0e88fbd65c0446aa1fb418c9723
 於是試著改 session 中的 exp，發現 seesion 會直接失效，推測是有驗 hmac。但我稍微試了一下，實在摸不出 hmac 怎麼算的。
 
 於是我想說這題太難了吧，而且大家第一題都解這個，根本不是交了 5 個 flag 的樣子 = =。
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/first-flag-3.png 450 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/first-flag-3.png 450 %}
 
 前前後後試了快 3 hr，突然靈機一動想到我是不是可以登這些解過的人的帳號，看他們的 flag，還真的有些可以登，結果這些人的帳號也都是 1 分 2 分，三小，那他們跟誰拿 flag 的？
 
 我想到了，admin
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/first-flag-4.png 450 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/first-flag-4.png 450 %}
 
 嗚嗚嗚終於，順便看了一下 session，感覺 exp 好像真的有用到。
 ```
@@ -51,7 +51,7 @@ eyJ1c2VyIjoiYWRtaW4iLCJleHAiOjE2OTI0MjgyNjV98727389e2f8e138d34d215e16affb60fb4b7
 
 ```
 # redpill
-題目給了一個沒任何說明的檔案 [redpill](https://files.sakana.tw/DEVCORE-Wargame-2023/redpill)
+題目給了一個沒任何說明的檔案 [redpill](https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill)
 依據經驗，我猜這是一個逆向題(??)，先收集一下資訊
 ``` bash
 # wsl ubuntu
@@ -100,7 +100,7 @@ ACCESS CODE:
 > 我的做人，我的作法，沒錢的人，沒錢的做法。爬了一下文，感覺 radare2 可以試試就拿來上了，
 > 順便學一下別的 decompiler 怎麼用。(而且感覺拿 IDA Pro 會瞬間做完很多事，這題可能會秒殺，會很無聊)
 
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-1.png 450 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-1.png 450 %}
 可以看到，斷在 0xffffffff8966e402 不知道這什麼地方。(其實這邊我 decompiler 的設定有誤，後面會說明)
 
 ## 動態分析 - 載入 MBR
@@ -132,7 +132,7 @@ with open('redpill.img', 'r+b') as f:
     f.write(mbr)
 ```
 4. 開始 debug image 的載入 `bochsdbg.exe -f bochsrc.bxrc`
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-2.png 550 終於成功載入 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-2.png 550 終於成功載入 %}
 
 ## 靜態分析 2 
 參考[Solving the Disobey 2020 puzzle bootloader using Unicorn and Ghidra](https://jarijaas.github.io/posts/disobey-2020/)
@@ -140,10 +140,10 @@ with open('redpill.img', 'r+b') as f:
 - radare2 的 cpu 模式要設成 16 bits 才對，boot 的時候 CPU 是 real mode
 - 最後 jmp 是跳躍到 0x6000
 
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-3.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-3.png 550 %}
 重新設定 r2 disam 後再從頭分析一次，可以知道 0x6000~0x6600 應該是 call 0x60 時做了某些操作後產生的 code。
 來看看 0x60 做了甚麼事，原來其是將對應 LBA sector 的內容拷貝到對應的記憶體上。
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-4.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-4.png 550 %}
 
 回到 0x00 的 asm，0x6000 ~ 0x6600 應為 image 的 sector 1 ~ 4 的內容，每一 sector 大小為 0x200，對應 image offset 0x200 ~ 0x800。
 
@@ -163,25 +163,25 @@ with open('redpill.img', 'r+b') as f:
 
 ## 靜態分析 3
 接下來進行 0x200 的分析，並嘗試快速定位 flag 的判斷位置。
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-5.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-5.png 550 %}
 當 flag 輸入錯誤時，會顯示 ACCESS DENY 的文字。而 ACCESS DENY 在 file offset 0x745 (應對應 memory 0x6545)。
 翻翻看哪個指令使用了這個字串，可以推測重點的判斷邏輯就在附近。
 快速瀏覽一遍 0x200 後，可以發現用了大量的中斷，查了後這些中斷都蠻好懂的，能很大的幫助理解邏輯。
 例如 0x237 - 0x278 這邊的迴圈是通過 `int 0x16` 取得鍵盤輸入，並呼叫 `int 0x10` 將其輸出到螢幕上，以及將輸入記錄到 buf 中。
 那我們就可以很直接的知道這邊是處理我們輸入 flag 的互動實作。
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-6.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-6.png 550 %}
 
 最後追到使用 `ACCESS DENY` 的 0x307，前面的 asm 則是使用 `0x6585`、`0x65af` 做了某種處理及比對。
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-7.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-7.png 550 %}
 
 先檢查一下這兩個 buf 執行前的內容
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-9.png 550 %}
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-8.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-9.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-8.png 550 %}
 
 ## 動態 + 靜態分析 4
 為了確認 `0x6585`、`0x65af` 這兩個 buf 在 runtime 進行處理、比對時的內容，直接在進入比對前的 `0x6097` 下斷點。
 檢查這時的 buf 內容，可見 `0x6585` 為使用者的輸入內容，`0x65af` 為 secret，跟靜態分析時的內容相同。
-{% img https://files.sakana.tw/DEVCORE-Wargame-2023/redpill-10.png 550 %}
+{% img https://files.sakana.tw/blog/DEVCORE-Wargame-2023/redpill-10.png 550 %}
 
 確定了輸入是與 secret 進行某種操作比對後，直接針對這邊的實作進行逆向，得到邏輯大概是長這樣
 ```

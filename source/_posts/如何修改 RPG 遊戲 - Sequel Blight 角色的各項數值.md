@@ -18,8 +18,8 @@ date: 2023-09-16 18:01:54
 
 # 目標說明
 ## Sequel Blight
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-1.png 450 %}
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-3.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-1.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-3.png 450 %}
 基本上遊戲過程就是解劇情，跑地圖打怪、升等打王，解隱藏地圖和道具等等的。而戰鬥機制的部分，就是常見的操控腳色跑地圖，撞到怪物時會進入戰鬥回合這樣。
 還有不少沒提到，總之這遊戲的元素很豐富，像是可以轉的職業就有 10 幾個，當 RPG 玩的話確實也蠻耐玩的。
 
@@ -38,18 +38,18 @@ date: 2023-09-16 18:01:54
 ## 取得角色數值的 address
 
 好像就這麼簡單。但要怎麼這些取得角色數值呢？直接搜尋會發現找不到這些值，於是猜測這些值存到 memory 前有處理過。(如下圖，搜尋攻擊力 302，過濾幾次後會發現搜尋結果一片空)
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-4.png 450 %} 
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-4.png 450 %} 
 
 推測這類型的數值，應該是由角色基礎數值、職業加成、裝備加成等等加總起來的，目標放在角色基礎數值的話，由於沒辦法知道確切數值為何，搜尋的方法會變成：搜尋 unknown value -> 回遊戲變動角色能力值 -> 過濾出變動的 value -> 回遊戲變動能力值 -> ... (無限 loop)。
 但是，這流程有個 bug，我想不到要怎麼變動角色基礎能力值，話說能想變就變的話我也不用 CE 了。
 卡了一段時間後，突然想到，在遊戲進行的過程中我有取得一些提升能力值的藥水，運氣不錯，這邊直接拿來試試。
 以活力之水(效果是sp+5)為例，流程是先取得這道具數量的 address，然後一口氣把活力之水數量調大，再慢慢試角色能力值。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-5.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-5.png 450 %}
 (過濾方法基本上就是 unknown value -> decreased value -> decreased value ...)
 
 把幾個看起來很像的 address 抓下來，隨便改個數字測試一下，確認 `0x0E481A8` 就是活力藥水的數量，同時還能發現一件事，記憶體中實際的數字是 `2x+1`，例如我藥水剩 4 瓶時，記憶體內容為 9，推測攻擊力、血量也是同理。
 現在拿活力藥水狂加在拉比身上，過濾出 `0x14F53A24` 是人物基礎 sp 的位置。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-6.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-6.png 450 %}
 
 ## 使用 Poninter Scan 找出指向 address 的 pointer
 接下來有幾條路可以走
@@ -60,15 +60,15 @@ date: 2023-09-16 18:01:54
 這時就要用到 Cheat Engine 的屌功能了 - **Pointer Scan** (在 Memory view 視窗的 Tools 選單中)，
 
 簡單來說，就是掃一遍`0x14F53A24`，CE 會找出所有指向到這位置的 pointer，接著把遊戲關掉重開，Rescan memory 出還是有效的 pointer，如下圖
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-8.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-8.png 450 %}
 重開遊戲後，跑一次 Rescan memory，過濾出正確的 pointer。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-7.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-7.png 450 %}
 
 ## 使用 dissect struct 觀察周遭變數
 接下來就可以開始大膽的亂改 memory 了，觀察上一步很屌的 pointer scan 結果，可以注意到 sp (`0x0EF7A374`)似乎位於 pointer 指向的 address 再 +4 的位置，強烈懷疑這 address 是拉比的人物屬性 struct，丟去 dissect struct 看一下。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-9.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-9.png 450 %}
 因為角色狀態的呈現是一條 hp 一條 sp，若第二個 value (offset +4) 是 sp，那第一個 value (offset +0) 應該是 hp，依此類推並測試確認後，這 struct 的 member 應該如下：
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-10.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-10.png 450 %}
 ``` c++
 struct character_status {
     int hp;
@@ -83,13 +83,13 @@ struct character_status {
 ```
 
 整理一下 Cheat Table(以下以 CT 代稱)，把 hp、sp 之類的記下來，這裡又要再提到 CE 的一個 feature，我們可以新增一個 address，address 寫 +0, +4 之類的 offset 描述，然後用滑鼠把它拉到做為 base address 的 pointer 下，這個 address 就會自動把 base address 加上來。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-11.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-11.png 450 %}
 現在我們獲得了代表 rabi 狀態的 address，能夠隨便改 rabi 的攻擊力和血量了。那其他角色呢？
 
 再通靈一次，依據感覺，rabi、uula 等等角色會有一個角色物件，存有各種 member 代表狀態、道具、職業等等資訊。
 然後會有玩家物件，member 包括遊戲進行時的各種數據、各個角色物件等等。在這邊假設角色物件會用指標去存，所以 uula 等角色物件的指標應該都存在 rabi 指標的旁邊，由於 rabi 是第一位角色，其他三位角色理論上是在 `+4`, `+8`, `+C` 的位置。(當然也有可能 member 是完整的角色物件，而不是指標，那這個假設就不成立了)。
 把可以調的 offset 都試了一遍，還真的給我試成功，某一段 pointer `offset +18` 代表 rabi，改成 `offset +1B,+20,+24` 後，發現分別代表其他三位女角，現在有辦法任意修改 4 位女主角的基本數值了。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-12.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-12.png 450 %}
 
 運氣很好，給我猜中，省下了重新找指標的時間...
 > 其實當時我並沒有通靈這麼多，找到一個角色後就沒做下去了，在寫這篇文章把流程重跑一遍後，才想到好像可以這樣試試。
@@ -108,7 +108,7 @@ struct character_status {
 unknown value-> shift 按住移動人物 -> changed value -> 放掉 shift 移動人物 -> changed value -> 隨便做幾個動作後移動人物 -> unchanged value -> ... (infinite loop)
 
 找到了 3 個看起來很像是移動速度的值，正常時是 11，按下 shift 會變成 9。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-13.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-13.png 450 %}
 但是把這 3 個 address 的值鎖在 11，會發現一點效果都沒有。
 推測鎖值無效的原因，是這不是正確的 address，可能只是處理人物速度時，暫時分配的 variable 而已，而 CE 的鎖值其實是每 100ms 鎖一次 (可從設定調整)，所以鎖不到。
 我猜邏輯可能是這樣：
@@ -122,20 +122,20 @@ unknown value-> shift 按住移動人物 -> changed value -> 放掉 shift 移動
 1. `Find out what access this address`
 2. `Find out what writes to this address`
 
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-14.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-14.png 450 %}
 
 依據目前的狀況，我猜這 3 個 address 有兩種可能
 1. 從真正的正常速度或 shift 速度的 variable 拿值，複製過來的，作為人物速度相關處理的 tmp value : 使用 Find out what writes to this address
 2. 人物真的要移動時，真的會套用的實際速度的 value : 使用 Find out what access to this address
 
 不如就先追第 2 種的狀況看看，追了發現都是同一段程式碼在處理 = =...不論我是否有按 shift。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-15.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-15.png 450 %}
 那第 1 種呢，也可發現 3 個 address 都是相同的幾段程式碼在存取...不論我是否有按 shift。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-16.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-16.png 450 %}
 
 追一下第 1 種的代碼段，看起來 eax 是指向某個結構，依據 ecx,edx 值判斷要將 ebp (caller 呼叫這 func 時傳入的參數) 塞到 eax 物件中的哪一個 member variable。
 推測 eax 應該是地圖角色的 "當前瞬間狀態"，eax + 0xA * 4 是 "當前速度"。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-17.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-17.png 450 %}
 
 所以 ebp 可能就是真正的移動速度，追一下 stack 看看 caller 是誰，有兩個方法
 1. 下 condition 斷點，看一下斷點發生時的 call stack，找出 caller。
@@ -143,18 +143,18 @@ unknown value-> shift 按住移動人物 -> changed value -> 放掉 shift 移動
 
 放上兩種方法的截圖：
 1. 設個準確的條件，避免斷點到除了分配人物速度時的其他狀況。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-18.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-18.png 450 %}
 2. 或是看一下 access 時的 stack 內容，因為 CE 很屌，我們可以一眼看出來哪些是指向程式碼段的，比較懶一點不去追 stack 多大的話，通常比較上面的那一個會是當前 func 的 return address(只要 caller 參數不是傳 func pointer 之類的)，於是我們就找到 caller 是誰了 (`RGSS300.dll + 0x2D36E`)。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-19.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-19.png 450 %}
 
 ## 追查 caller 呼叫進入這代碼段時傳入的參數
 看一下 caller 這邊 (`RGSS300.dll + 0x2D36E`) 怎麼呼叫的，反推回呼叫 func 時這些 register 的值。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-20.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-20.png 450 %}
 算了我好像推不回來各 register 的值，直接下斷點。這裡下斷點有兩個方式
 1. 設 condition 斷點 (e.g. 像是 ECX == 0x2fc1 && EDI == 0xb 之類的，注意 register 要大寫如 EAX，不行小寫如 eax) 
 2. 做 AOB injection，裡面寫幾個 cmp 條件，斷點下在符合條件時會走到的指令上
 
-因為第 1 種的斷點下了之後，遊戲會瞬間 lag 到不可思議，我猜他的 software bp 是用 lua 做的。所以我推薦第 2 種，作法如下
+因為第 1 種的斷點下了之後，遊戲會瞬間 lag 到不可思議，我猜他的 softw/blogare bp 是用 lua 做的。所以我推薦第 2 種，作法如下
 1. Tools -> Auto Assemble -> template 選 AOB injection
 2. 開始寫 asm
 ``` asm
@@ -195,12 +195,12 @@ dealloc(newmem)
 
 這樣就寫好了一個簡單的 injection 了，隨時可以開啟關閉 cheat table 上你剛寫好的 asm script。
 開啟時，CE 會分配 asm 一塊 memory，並將符合 AOB 特徵的程式段改成 jmp 到自製 asm 的 address。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-24.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-24.png 450 %}
 大概就是這樣子，可以做很多有的沒的事情，總之下個斷點簡單檢查一下，可以知道
 1. edi = 0xb 時 ecx 都是 0x2FC1
 2. 這時 eax = 0x326010c (被傳入 func 的參數 - edi 值為 [eax-4])
 
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-25.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-25.png 450 %}
 所以 `0x326010c - 4` 是 normal speed 的 adr 嗎？看了一下這個值會一直亂跳，看來不是，馬的。他只有在 `edi = 0xb` 和 `ecx = 0x2fc1` 時才會是正常速度值 `0xB`。
 這要怎麼追，我破防了。
 
@@ -209,7 +209,7 @@ dealloc(newmem)
 假設地圖角色的各項狀態數值，是存在一個 struct 裡的，member 可能包括 xy 軸、可否移動、可否無視怪物、人物移動速度等等，那我們先抓出 xy 軸，然後觀察附近 memory 的值的變動，說不定能找出人物移動速度？！
 
 首先人物隨便移動幾下，過濾出 x 軸 adr。然後看一下附近的值，還真的有跟我們剛剛看到一樣是 0xB 的 value，而且按下 shift 也會變成 0x9，可能真的跟速度有關，在這邊先幫他命名為 speed。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-26.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-26.png 450 %}
 但我們調整 speed 的值，人物的移動速度仍然不會變，而且會被改回 0xB。使用上一段的方法找出讀取寫入的代碼段，發現還是回到了相同的地方 `RGSS300.dll + 0x2D369`，破防...。
 
 ## 反向找出各 register 的內容和相關的代碼段
@@ -234,7 +234,7 @@ RGSS300.dll+2D375 - jmp RGSS300.dll+2D1D6 // 段落的結束，跳回 RGSS300.dl
 ```
 總之，目標是找出到底從哪邊進來 `RGSS300.dll + 0x2D34D` 的，這樣我就有線索找出 `edi = 0xB` 之前的 esi、edx 等等 register 是被誰分配的，經過一番快速的分析，大概就像下面，感覺類似做某件事時會呼叫對應的 func pointer(`RGSS300.dll + 0x2F598`) 這樣。
 
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-27.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-27.png 450 %}
 
 下記憶體寫入斷點，追寫入 esi+4 (0x3DCB114) 且 condition 是 `readInterger(0x3DCB114) == 0xB` 時的位置，找到了 `RGSS300.dll+2D26E`。
 ```
@@ -340,7 +340,7 @@ RGSS300.dll+2D274 - jmp RGSS300.dll+2D1D6 // 回去一開始
 那`RGSS300.dll+2D25D`是從哪裡 jmp 過來的呢？翻了一遍 func pointers (`RGSS300.dll + 0x2F598`)的內容，沒有 pointer 的值是 `0x102D25D` ，看來是無法知道是哪裡來的了...只好召喚出好朋友 IDA 來看一下 cross reference 了。
 
 首先用 x32dbg 的 Scylla 把 module(RGSS300.dll) 當前的記憶體 dump 下來。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-38.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-38.png 450 %}
 
 > 要特別從記憶體 dump 的原因是如果直接把 RGSS300.dll 丟給 IDA，會發現`RGSS300.dll+2D25D`這邊的指令都還沒被載入，這是 runtime 才會載入的實作內容。
 
@@ -372,12 +372,12 @@ wtf...這什麼靈異現象，怎麼都斷不到的 na？
 
 ## 從人物 x 軸 address 切入 (again)
 
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-28.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-28.png 450 %}
 因為追不出甚麼結果，我決定重新來，說不定 0xB 這個值根本就錯了，其實速度不是 0xB = =。
 重新再找了一次 x 軸，這一次，先鎖值確認這個 x 軸真的 work，然後看了一下地址 `0x10FE5D94`，嗯?!對照 `RGSS300.dll` 的 module base `0x10000000`，這 address 好像是在 `RGSS300.dll` memory 段中耶，難道其實 x 軸之類的 info 是 module 的 global variable 嗎? 那我剛剛找到的 x 軸莫非是 tmp var？會不會之前找錯目標了，看一下周遭 memory 的變化，亂試一下。
 
 結果發現 +1C 的變數代表速度...，改成 0xB、0xD 之類的值後，人物速度真的會變快。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-29.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-29.png 450 %}
 
 至此完成了人物速度位置的尋找。定位到實際的 pointer 後就可以加一些小功能了，例如設定 hotkey 方便隨時調整自己的移動速度之類的。
 
@@ -387,13 +387,13 @@ wtf...這什麼靈異現象，怎麼都斷不到的 na？
 
 所以我放棄硬剛，轉向 google 找尋其他出路。
 1. 搜 `RGSS300 dll` 時，發現這個遊戲是用 RPG Maker VX Ace 做的
-2. 搜 `RPG Maker VX Ace Cheat` 之類的，發現有人寫了一個 RMVA(RPG Maker VX Ace) 用的 Cheater ([RMVA Cheat Menu](https://f95zone.to/threads/rpg-maker-vx-ace-cheat-menu.20567/) ([載點](https://files.sakana.tw/Sequel-Blight-Reversing/RPG%20VX%20ACE%20Cheat%20System.7z)))
+2. 搜 `RPG Maker VX Ace Cheat` 之類的，發現有人寫了一個 RMVA(RPG Maker VX Ace) 用的 Cheater ([RMVA Cheat Menu](https://f95zone.to/threads/rpg-maker-vx-ace-cheat-menu.20567/) ([載點](https://files.sakana.tw/blog/Sequel-Blight-Reversing/RPG%20VX%20ACE%20Cheat%20System.7z)))
 
 ## RMVA Cheat Menu
     這插件的本名應該叫 RMVA Cheat System 才對，純粹因為是他有 menu，所以我都叫他 cheat menu 或 cheater。
 這個 Cheater 大概長這樣，第一次執行時會先進行安裝 Cheat Menu，接下來就可以 F8 叫出作弊選單了。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-30.png 450 %}
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-31.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-30.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-31.png 450 %}
 
 來了，這個 Cheater 就是我的研究目標了，至少研究這個東西怎麼做，應該比逆向遊戲本身還簡單吧。
 分成幾個階段
@@ -481,7 +481,7 @@ CreationDate=1401520961
     - 我弄了一個小時就是灌不起來，放棄。推測是這個專案支援的 ruby 版本太舊。
 4. 拿 RMVA 內建的編輯器來用
     - 建立遊戲專案後，直接把 `Scripts.rvdata2` 複製一份取代遊戲專案中的版本，把腳本編輯器打開後就能見到解密後的 `Scripts.rvdata2` 內容了。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-32.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-32.png 450 %}
 
 以上幾種方法我都試過，我覺得 4. 是最方便的，最不用掃雷除錯 = =。附上拆出來的腳本，
 ``` ruby
@@ -576,8 +576,8 @@ change_text[0] = ["Data/Items.rvdata2","Data_Cheat/Items.rvdata2"]
 1. 初始化作弊選單的視窗 (e.g. `Scene_Cheat`, `Window_CheatCommand`)
 2. 設定每個選項個別的 handle，當選擇對應的選項時，其 handle 會創建新的子選單並套用設定。 (e.g. `Scene_Cheat`, `set_handler`)
 
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-33.png 450 %}
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-34.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-33.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-34.png 450 %}
 
 不過，當去比對遊戲本體的腳本內容時，會發現 `Scene_Map` 是本來就有的 class。
 如果跟我一樣只有寫過 c++、python 之類的朋友，應該會黑人問號，重複定義 class 會噴錯吧？其實這個操作在 ruby 叫做 [open class](https://stackoverflow.com/questions/3822471/are-you-allowed-to-redefine-a-class-in-ruby-or-is-this-just-in-irb)，可以往已經定義好的 class 中打 patch，太淫蕩了...。
@@ -585,14 +585,14 @@ change_text[0] = ["Data/Items.rvdata2","Data_Cheat/Items.rvdata2"]
 
 ### 調整人物速度的選項
 翻了一遍跟 speed 選單有關的實作，基本上流程是這樣的
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-35.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-35.png 450 %}
 1. 開啟 "Move Speed" 選單，呼叫 edit_move command (此 command ext = "move")。
 2. edit_move 呼叫 Window_ChaatMove 處理設定速度 (4~9) 的選項，在這邊選項是 4。
 3. Window_CheatMove 呼叫 cheat_change("move", 4)，設定速度值。
 4. cheat_change 跟據傳入的 ext 來設定對應的屬性值，在這邊設定 `@move = 4`。
 
 大致了解選單的邏輯後，開始追 move 值的改動會如何套用到遊戲人物上，這部分蠻單純的，就是覆寫原本的 `real_move_speed`，改為使用作弊選單設定的 move 值。(下圖左為作弊選單，圖右為原本邏輯)
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-36.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-36.png 450 %}
 (原本的`real_move_speed`跟我在使用 CE 逆向時的猜測之一蠻接近的，還真的是人物速度 +1，再細追一下會發現這個值主要影響每一幀更新時人物的移動距離。)
 
 ## 回到 CE
@@ -602,7 +602,7 @@ change_text[0] = ["Data/Items.rvdata2","Data_Cheat/Items.rvdata2"]
 
 跟一開始不一樣的是，我們手上有 source 了，在使用 CE 逆向的階段時，有很多不確定的 struct member，現在可以無恥的跟 src 比對， 一個一個找出這些值到底是啥。
 直接來比對 `Game_CharacterBase` 和 CE 看到的 struct 內容。
-{% img https://files.sakana.tw/Sequel-Blight-Reversing/sequel-blight-37.png 450 %}
+{% img https://files.sakana.tw/blog/Sequel-Blight-Reversing/sequel-blight-37.png 450 %}
 可見數字是以 2x + 1 去存，而 bool 是以 2x 去存。並且把這些值玩一遍之後，我感覺比較實用的有 move speed、through mode (不會撞怪、不受障礙的移動)。
 
 # 總結
