@@ -4,8 +4,7 @@ date: 2023-08-27 20:50:27
 tags:
 - [CTF]
 categories:
-cover:
-- cover.jpg
+cover: https://files.sakana.tw/blog/HITCON-2023-ReCTF/cover.jpg
 ---
 ## 緣由
 上周被公司派去參加了 hitcon 2023，看到年齡相近的大神們那超高水準的研究以及充滿夢想(?)的眼神後，被激勵到，又燃起 hacker 的熱情了。

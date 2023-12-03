@@ -2,8 +2,7 @@
 title: 如何修改 RPG 遊戲 - Sequel Blight 角色的各項數值
 tags:
   - - Reverse Engineering
-cover:
-  - Title.png
+cover: https://files.sakana.tw/blog/Sequel-Blight-Reversing/Title.png
 date: 2023-09-16 18:01:54
 ---
 
