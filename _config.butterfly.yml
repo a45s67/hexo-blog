@@ -121,13 +121,8 @@ ignore:
 ## Themes: https://hexo.io/themes/
 theme: butterfly
 
-# Deployment
-## Docs: https://hexo.io/docs/one-command-deployment
-deploy:
-  type: git
-  repo: https://github.com/a45s67/hexo-publish-test.git
-  branch: master
-
-
+# Image description
+## https://butterfly.js.org/posts/4aa8abbe/?highlight=cover#%E5%9C%96%E7%89%87%E6%8F%8F%E8%BF%B0
+photofigcaption: true
 
 
